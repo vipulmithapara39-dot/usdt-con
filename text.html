@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TA બિલ જનરેટર - Auto KM & Print Setup Modal</title>
+  
+  <!-- Dynamic Print & Layout CSS Block -->
+  <style id="customPrintCss"></style>
+
+  <style>
+    :root {
+      --primary: #1e40af;
+      --primary-dark: #1e3a8a;
+      --primary-soft: #eff6ff;
+      --holiday-bg: #fee2e2;
+      --tour-bg: #dcfce7;
+      --office-bg: #ffffff;
+      --slate-100: #f1f5f9;
+      --slate-200: #e2e8f0;
+      --slate-600: #475569;
+      --slate-800: #1e293b;
+
+      /* Dynamic Page Setup Defaults */
+      --cfg-row-height: 6.8mm;
+      --cfg-font-size: 10px;
+      --cfg-font-weight: 700;
+      --cfg-border-width: 1.5px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Gujarati", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #f1f5f9;
+      color: #000000;
+      padding: 8px;
+      font-size: 13px;
+    }
+
+    .main-wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      background: white;
+      padding: 10px;
+      border-radius: 12px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      border: 1px solid var(--slate-200);
+    }
+
+    /* Controls Panel */
+    .controls-card {
+      background: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .card-title {
+      font-size: 13.5px;
+      font-weight: bold;
+      color: var(--primary);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .sync-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #e2e8f0;
+      color: #334155;
+      transition: all 0.3s;
+    }
+    .sync-badge.synced { background: #dcfce7; color: #166534; }
+    .sync-badge.saving { background: #fef3c7; color: #92400e; }
+    .sync-badge.error  { background: #fee2e2; color: #991b1b; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 8px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 3px;
+      color: #334155;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .val-badge {
+      color: #1e40af;
+      font-weight: 800;
+      font-size: 11px;
+    }
+
+    input, select {
+      padding: 7px 9px;
+      border: 1.5px solid #94a3b8;
+      border-radius: 6px;
+      font-size: 12.5px;
+      background: white;
+      outline: none;
+      font-weight: 600;
+      width: 100%;
+    }
+
+    input[type="range"] {
+      padding: 0;
+      height: 6px;
+      accent-color: #15803d;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+
+    input[type="time"] {
+      padding: 6px 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.2);
+    }
+
+    .highlight-select {
+      background-color: #eff6ff;
+      border: 2px solid var(--primary);
+      font-weight: bold;
+      color: var(--primary-dark);
+    }
+
+    .actions-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .btn {
+      flex: 1;
+      min-width: 120px;
+      padding: 9px 10px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 12px;
+      text-align: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .btn-sm {
+      padding: 5px 8px;
+      font-size: 11px;
+      min-width: auto;
+      flex: none;
+    }
+
+    .btn:active { transform: scale(0.97); }
+    .btn-blue { background: #1e40af; color: white; }
+    .btn-green { background: #15803d; color: white; }
+    .btn-amber { background: #d97706; color: white; }
+    .btn-slate { background: #475569; color: white; }
+    .btn-emerald { background: #059669; color: white; }
+
+    /* Summary Bar */
+    .summary-strip {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      background: #eff6ff;
+      padding: 8px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #bfdbfe;
+    }
+
+    .kpi { text-align: center; }
+    .kpi-val { font-size: 15px; font-weight: 800; color: var(--primary-dark); }
+    .kpi-lbl { font-size: 10px; font-weight: 600; color: #475569; white-space: nowrap; }
+
+    .mobile-tip {
+      font-size: 11px;
+      color: #0369a1;
+      background: #e0f2fe;
+      padding: 7px 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Screen Paper View Container */
+    .paper-sheet {
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 6px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Main Box Container: Name, Desig, Month & Table Inside One Unified Outer Border */
+    .doc-container {
+      width: 100%;
+      min-width: 720px;
+      border: var(--cfg-border-width) solid #000000;
+      background: #ffffff;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    .doc-header {
+      text-align: center;
+      padding: 6px 8px 5px 8px;
+      border-bottom: var(--cfg-border-width) solid #000000;
+      background: #ffffff;
+    }
+
+    .doc-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      font-weight: var(--cfg-font-weight);
+      line-height: 1.35;
+      color: #000000;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .doc-title {
+      font-size: 13px;
+      font-weight: var(--cfg-font-weight);
+      text-align: center;
+      margin-top: 3px;
+      margin-bottom: 1px;
+      text-decoration: underline;
+      color: #000000;
+    }
+
+    /* Table Styles */
+    table.ta-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--cfg-font-size);
+      font-weight: var(--cfg-font-weight);
+      table-layout: fixed;
+      margin-top: 0;
+      border: none;
+    }
+
+    table.ta-table th, table.ta-table td {
+      border: var(--cfg-border-width) solid #000000;
+      padding: 3px 2px;
+      text-align: center;
+      vertical-align: middle;
+      word-wrap: break-word;
+      overflow: hidden;
+      line-height: 1.25;
+      height: var(--cfg-row-height);
+      color: #000000;
+    }
+
+    table.ta-table th {
+      background-color: #f1f5f9;
+      font-weight: 800;
+      font-size: calc(var(--cfg-font-size) + 0.2px);
+      border-top: none;
+    }
+
+    .c-date { width: 8.5%; }
+    .c-day  { width: 8.5%; }
+    .c-from { width: 14.5%; }
+    .c-t1   { width: 6.5%; }
+    .c-to   { width: 14%; }
+    .c-t2   { width: 6.5%; }
+    .c-veh  { width: 7.5%; }
+    .c-km   { width: 5.5%; }
+    .c-frac { width: 5.5%; }
+    .c-work { width: 23%; text-align: left !important; padding-left: 4px !important; }
+
+    .merged-holiday-cell {
+      text-align: center !important;
+      font-weight: 800;
+      background-color: var(--holiday-bg);
+      letter-spacing: 0.5px;
+    }
+
+    .merged-office-cell {
+      text-align: center !important;
+      color: #000;
+    }
+
+    tr.data-row { cursor: pointer; }
+    tr.data-row:hover { background-color: #fef9c3 !important; }
+    tr.row-tour { background-color: var(--tour-bg); }
+    tr.row-office { background-color: var(--office-bg); }
+    tr.row-holiday { background-color: var(--holiday-bg); }
+
+    .mode-pure-bw tr.row-tour,
+    .mode-pure-bw tr.row-office,
+    .mode-pure-bw tr.row-holiday,
+    .mode-pure-bw .merged-holiday-cell,
+    .mode-pure-bw table.ta-table th {
+      background-color: #ffffff !important;
+      color: #000000 !important;
+    }
+
+    .sig-cell {
+      vertical-align: bottom !important;
+      height: 60px;
+      font-size: 11px;
+      font-weight: var(--cfg-font-weight);
+      line-height: 1.35;
+      padding-bottom: 6px !important;
+    }
+
+    /* Modal / Popups */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+    }
+
+    .modal-card {
+      background: white;
+      width: 100%;
+      max-width: 480px;
+      max-height: 94vh;
+      overflow-y: auto;
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 4px;
+      border-bottom: 1.5px solid #e2e8f0;
+    }
+
+    .modal-header h3 { font-size: 14.5px; color: var(--primary); font-weight: 800; }
+
+    .setup-modal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .quick-tags {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .tag-btn {
+      padding: 8px 4px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 2px solid transparent;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .tag-btn.active {
+      box-shadow: 0 0 0 2px var(--primary);
+    }
+
+    .time-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .chip {
+      font-size: 10px;
+      padding: 3px 6px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      color: #334155;
+    }
+
+    .chip:active {
+      background: #dbeafe;
+      border-color: var(--primary);
+    }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .km-calc-badge {
+      font-size: 10.5px;
+      color: #1e40af;
+      background: #eff6ff;
+      padding: 4px 6px;
+      border-radius: 6px;
+      margin-top: 3px;
+      font-weight: bold;
+      border: 1px solid #bfdbfe;
+    }
+
+    /* Print CSS */
+    @media print {
+      .no-print, .controls-card, .actions-bar, .summary-strip, .mobile-tip, .modal-overlay {
+        display: none !important;
+      }
+
+      html, body {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .main-wrap {
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        border: none !important;
+        background: #ffffff !important;
+      }
+
+      .paper-sheet {
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        background: #ffffff !important;
+        overflow: visible !important;
+        display: block !important;
+      }
+
+      .doc-container {
+        min-width: 100% !important;
+        width: 100% !important;
+        background: #ffffff !important;
+      }
+
+      tr.data-row {
+        page-break-inside: avoid !important;
+      }
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 4px; }
+      .main-wrap { padding: 6px; }
+      .summary-strip { grid-template-columns: repeat(3, 1fr); }
+      .btn { min-width: 100%; }
+      .modal-grid, .setup-modal-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="main-wrap">
+
+  <!-- Controls Panel -->
+  <div class="controls-card no-print">
+    <div class="card-title">
+      <span>📅 મહિનો પસંદ કરો (Auto KM + Firebase Sync)</span>
+      <span class="sync-badge" id="syncStatus">
+        <span id="syncIcon">🔄</span> <span id="syncText">ઓનલાઇન કનેક્ટ થાય છે...</span>
+      </span>
+    </div>
+    
+    <div class="form-grid">
+      <div class="form-group">
+        <label>મહિનો (Month) 👈 અહીંથી બદલો:</label>
+        <select id="selMonth" class="highlight-select" onchange="changeMonthOrYear()">
+          <option value="0">જાન્યુઆરી (01)</option>
+          <option value="1">ફેબ્રુઆરી (02)</option>
+          <option value="2">માર્ચ (03)</option>
+          <option value="3">એપ્રિલ (04)</option>
+          <option value="4">મે (05)</option>
+          <option value="5">જૂન (06)</option>
+          <option value="6">જુલાઈ (07)</option>
+          <option value="7">ઓગસ્ટ (08)</option>
+          <option value="8">સપ્ટેમ્બર (09)</option>
+          <option value="9">ઓક્ટોબર (10)</option>
+          <option value="10">નવેમ્બર (11)</option>
+          <option value="11">ડિસેમ્બર (12)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>વર્ષ (Year):</label>
+        <input type="number" id="inpYear" value="2026" onchange="changeMonthOrYear()">
+      </div>
+
+      <div class="form-group">
+        <label>કર્મચારીનું નામ:</label>
+        <input type="text" id="inpName" value="મીઠાપરા વિપુલ. વિ." onchange="updateProfileOnline()">
+      </div>
+
+      <div class="form-group">
+        <label>હોદ્દો:</label>
+        <input type="text" id="inpDesig" value="સિવિલ એન્જિનેઅર (SBM) VB-G RAM G ચાર્જ" onchange="updateProfileOnline()">
+      </div>
+
+      <div class="form-group">
+        <label>મૂળ કચેરી (ક્યાથી):</label>
+        <input type="text" id="inpBaseOffice" value="વીંછીયા\ તાલુકા પંચાયત" onchange="updateProfileOnline()">
+      </div>
+    </div>
+
+    <div class="actions-bar">
+      <!-- Click triggers the Print & PDF Setup Modal -->
+      <button class="btn btn-green" onclick="openPrintSetupModal()">🖨️ A4 PDF / પ્રિન્ટ કરો</button>
+      <button class="btn btn-blue" onclick="syncNow()">☁️ ડેટા Sync / Refresh</button>
+      <button class="btn btn-amber" onclick="downloadCSV()">📥 Excel (CSV) ડાઉનલોડ</button>
+      <button class="btn btn-slate" onclick="clearCurrentMonth()">🔄 મહિનો રીસેટ કરો</button>
+    </div>
+  </div>
+
+  <!-- KPI Strip -->
+  <div class="summary-strip no-print">
+    <div class="kpi"><div class="kpi-val" id="kpiTotalDays">31</div><div class="kpi-lbl">માસના દિવસો</div></div>
+    <div class="kpi"><div class="kpi-val" id="kpiHolidayDays">0</div><div class="kpi-lbl">રજાના દિવસો</div></div>
+    <div class="kpi"><div class="kpi-val" id="kpiOfficeDays">0</div><div class="kpi-lbl">કચેરી દિવસો</div></div>
+    <div class="kpi"><div class="kpi-val" id="kpiTourDays">0</div><div class="kpi-lbl">પ્રવાસ દિવસો</div></div>
+    <div class="kpi"><div class="kpi-val" id="kpiTotalKm">0</div><div class="kpi-lbl">કુલ કી.મી.</div></div>
+  </div>
+
+  <div class="mobile-tip no-print">
+    <span>💡 <b>ટિપ:</b> પીડીએફ કે પ્રિન્ટ કરવા માટે ઉપર લીલા રંગના <b>"🖨️ A4 PDF / પ્રિન્ટ કરો"</b> બટન પર ક્લિક કરો.</span>
+  </div>
+
+  <!-- Screen Paper Sheet View -->
+  <div class="paper-sheet" id="printSheetArea">
+    <div class="doc-container" id="docMainContainer">
+      <div class="doc-header">
+        <div class="doc-meta">
+          <span id="txtHdrName">નામ :- મીઠાપરા વિપુલ. વિ.</span>
+          <span id="txtHdrDesig">હોદો :- સિવિલ એન્જિનેઅર (SBM) VB-G RAM G ચાર્જ</span>
+          <span id="txtHdrMonth">માહે - જુલાઈ 2026 ની કરેલ કામગીરી</span>
+        </div>
+        <div class="doc-title">પ્રવાસની વિગત</div>
+      </div>
+
+      <table class="ta-table" id="taTable">
+        <thead>
+          <tr>
+            <th class="c-date">તاريخ</th>
+            <th class="c-day">વાર</th>
+            <th class="c-from">ક્યાથી</th>
+            <th class="c-t1">સમય</th>
+            <th class="c-to">ક્યાં સુધી</th>
+            <th class="c-t2">સમય</th>
+            <th class="c-veh">વાહન</th>
+            <th class="c-km">કી.મી.</th>
+            <th class="c-frac">દિવસ</th>
+            <th class="c-work">કરેલ કામગીરીની વિગત</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyRows"></tbody>
+        <tfoot>
+          <tr>
+            <td style="font-weight: bold; text-align: left; padding-left: 4px;">માસના દિવસો</td>
+            <td style="font-weight: bold;" id="ftDaysTotal">31</td>
+            <td colspan="2" rowspan="4" class="sig-cell">સિવિલ ઈજનેર<br>તા.પં. વિંછીયા</td>
+            <td colspan="2" rowspan="4" class="sig-cell">આસિસ્ટંટ પ્રોગ્રામર<br>તા.પં. વિંછીયા</td>
+            <td colspan="4" rowspan="4" class="sig-cell">તાલુકા વિકાસ અધિકારી<br>તા.પં. વિંછીયા</td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold; text-align: left; padding-left: 4px;">રજાના દિવસો</td>
+            <td style="font-weight: bold;" id="ftDaysHoliday">0</td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold; text-align: left; padding-left: 4px;">કચેરીના દિવસો</td>
+            <td style="font-weight: bold;" id="ftDaysOffice">0</td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold; text-align: left; padding-left: 4px;">પ્રવાસના દિવસો</td>
+            <td style="font-weight: bold;" id="ftDaysTour">0</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===================================================================== -->
+<!-- 1. POPUP MODAL: PDF & PRINT PAGE SETUP (Appears upon button click)    -->
+<!-- ===================================================================== -->
+<div class="modal-overlay" id="printSetupModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 style="color:#166534;">⚙️ PDF & પ્રિન્ટ પેજ સેટઅપ</h3>
+      <button onclick="closePrintSetupModal()" style="border:none; background:none; font-size:24px; cursor:pointer; color:#64748b;">&times;</button>
+    </div>
+
+    <div class="setup-modal-grid">
+      <!-- Color Mode -->
+      <div class="form-group">
+        <label>⚪⚫ કલર મોડ:</label>
+        <select id="cfgColorMode" onchange="applyPageSettings()">
+          <option value="bw">Pure Black & White (સરકારી સબમિશન)</option>
+          <option value="color">કલર મોડ (સ્ક્રીન કલર સાથે)</option>
+        </select>
+      </div>
+
+      <!-- Dark Bold Font Setting -->
+      <div class="form-group">
+        <label>🔤 ફોન્ટ ડાર્કનેસ (Bold):</label>
+        <select id="cfgFontWeight" onchange="applyPageSettings()">
+          <option value="500">સામાન્ય (Normal - 500)</option>
+          <option value="600">મીડિયમ બોલ્ડ (Semi-Bold - 600)</option>
+          <option value="700" selected>ઘાટા બોલ્ડ (Dark Bold - 700)</option>
+          <option value="900">અલ્ટ્રા ડાર્ક બ્લેક (Ultra Dark - 900)</option>
+        </select>
+      </div>
+
+      <!-- Border Width -->
+      <div class="form-group">
+        <label>🖼️ બોર્ડર જાડાઈ:</label>
+        <select id="cfgBorderWidth" onchange="applyPageSettings()">
+          <option value="1px">1 px (પાતળી)</option>
+          <option value="1.5px" selected>1.5 px (પરફેક્ટ)</option>
+          <option value="2px">2 px (ઘાટી બોર્ડર)</option>
+          <option value="2.5px">2.5 px (અતિ ઘાટી)</option>
+        </select>
+      </div>
+
+      <!-- Zoom / Scale -->
+      <div class="form-group">
+        <label>🔍 ઝૂમ (Scale): <span class="val-badge" id="lblScale">100%</span></label>
+        <input type="range" id="cfgScale" min="80" max="115" step="1" value="100" oninput="applyPageSettings()">
+      </div>
+
+      <!-- Row Height -->
+      <div class="form-group">
+        <label>📐 રો ઊંચાઈ (Row Height): <span class="val-badge" id="lblRowHeight">6.8 mm</span></label>
+        <input type="range" id="cfgRowHeight" min="5.0" max="9.5" step="0.2" value="6.8" oninput="applyPageSettings()">
+      </div>
+
+      <!-- SEPARATE Top Margin -->
+      <div class="form-group">
+        <label>⬆️ Top Margin (ઉપર): <span class="val-badge" id="lblMarginTop">8 mm</span></label>
+        <input type="range" id="cfgMarginTop" min="0" max="25" step="1" value="8" oninput="applyPageSettings()">
+      </div>
+
+      <!-- SEPARATE Bottom Margin -->
+      <div class="form-group">
+        <label>⬇️ Bottom Margin (નીચે): <span class="val-badge" id="lblMarginBottom">8 mm</span></label>
+        <input type="range" id="cfgMarginBottom" min="0" max="25" step="1" value="8" oninput="applyPageSettings()">
+      </div>
+
+      <!-- Left / Right Margin -->
+      <div class="form-group">
+        <label>↔️ સાઇડ માર્જિન (L/R): <span class="val-badge" id="lblMarginLR">6 mm</span></label>
+        <input type="range" id="cfgMarginLR" min="2" max="20" step="1" value="6" oninput="applyPageSettings()">
+      </div>
+
+      <!-- Font Size -->
+      <div class="form-group" style="grid-column: span 2;">
+        <label>🔤 ફોન્ટ સાઇઝ: <span class="val-badge" id="lblFontSize">10 px</span></label>
+        <input type="range" id="cfgFontSize" min="8.5" max="12.5" step="0.5" value="10" oninput="applyPageSettings()">
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; gap:6px;">
+      <button class="btn btn-emerald btn-sm" onclick="setPresetPerfectFit()">🎯 સરખા માર્જિન ઓટો-સેટ</button>
+      <button class="btn btn-slate btn-sm" onclick="resetPageSetup()">🔄 રીસેટ</button>
+    </div>
+
+    <!-- Print Action Trigger -->
+    <div class="actions-bar" style="margin-top: 14px;">
+      <button class="btn btn-green" style="padding:11px; font-size:13px;" onclick="executePrintFromModal()">🖨️ પ્રિન્ટ / PDF ડાઉનલોડ કરો</button>
+      <button class="btn btn-slate" onclick="closePrintSetupModal()">રદ કરો</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================================================================== -->
+<!-- 2. POPUP MODAL: ROW / DATE EDITOR                                     -->
+<!-- ===================================================================== -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 id="modalTitle">તારીખ સુધારો</h3>
+      <button onclick="closeModal()" style="border:none; background:none; font-size:24px; cursor:pointer; color:#64748b;">&times;</button>
+    </div>
+
+    <div class="quick-tags">
+      <button type="button" id="btnModeOffice" class="tag-btn" style="background:#e0f2fe; color:#0369a1;" onclick="setEditorMode('office')">🏢 ઓફિસ</button>
+      <button type="button" id="btnModeTour" class="tag-btn active" style="background:#dcfce7; color:#15803d;" onclick="setEditorMode('tour')">🚗 પ્રવાસ</button>
+      <button type="button" id="btnModeHoliday" class="tag-btn" style="background:#fee2e2; color:#b91c1c;" onclick="setEditorMode('holiday')">🏖️ રજા</button>
+    </div>
+
+    <div class="modal-grid">
+      <div class="form-group" id="holidayBox" style="grid-column: span 2; display: none;">
+        <label>રજાનું નામ (સેલ મર્જ થશે):</label>
+        <input type="text" id="mHolidayName" list="lstHolidays" placeholder="દા.ત. રવિવાર ની રજા / બીજો શનિવાર">
+        <datalist id="lstHolidays">
+          <option value="રવિવાર ની રજા">
+          <option value="બીજો શનિવાર">
+          <option value="ચોથો શનિવાર">
+          <option value="જાહેર રજા">
+          <option value="હોળી ની રજા">
+          <option value="ધૂળેટી ની રજા">
+          <option value="રમજાન ઈદ">
+          <option value="બકરી ઈદ ની રજા">
+          <option value="રક્ષાબંધન ની રજા">
+          <option value="જન્માષ્ટમી ની રજા">
+          <option value="દિવાળી ની રજા">
+          <option value="સ્વતંત્રતા દિવસ">
+          <option value="ગાંધી જયંતિ">
+        </datalist>
+      </div>
+
+      <div class="form-group normal-field">
+        <label>⏰ ઉપડ્યા સમય:</label>
+        <input type="time" id="mTime1" value="10:30">
+        <div class="time-chips">
+          <span class="chip" onclick="setTimeVal('mTime1','10:00')">10:00</span>
+          <span class="chip" onclick="setTimeVal('mTime1','10:30')">10:30</span>
+          <span class="chip" onclick="setTimeVal('mTime1','11:00')">11:00</span>
+        </div>
+      </div>
+
+      <div class="form-group tour-only">
+        <label>⏰ પરત સમય:</label>
+        <input type="time" id="mTime2" value="17:30">
+        <div class="time-chips">
+          <span class="chip" onclick="setTimeVal('mTime2','17:00')">05:00</span>
+          <span class="chip" onclick="setTimeVal('mTime2','17:30')">05:30</span>
+          <span class="chip" onclick="setTimeVal('mTime2','18:00')">06:00</span>
+        </div>
+      </div>
+
+      <div class="form-group tour-only">
+        <label>📍 ગામ ૧ (Auto KM):</label>
+        <select id="mVillage1" onchange="onVillageChange()"></select>
+      </div>
+
+      <div class="form-group tour-only">
+        <label>📍 ગામ ૨ (વૈકલ્પિક):</label>
+        <select id="mVillage2" onchange="onVillageChange()"></select>
+      </div>
+
+      <div class="form-group tour-only">
+        <label>ક્યાં સુધી (ગામ નામ):</label>
+        <input type="text" id="mTo" placeholder="ગામ ૧ / ગામ ૨">
+      </div>
+
+      <div class="form-group tour-only">
+        <label>કી.મી. (Auto Sum):</label>
+        <input type="number" id="mKm" placeholder="કી.મી.">
+        <div class="km-calc-badge" id="kmInfoBadge">કુલ: 0 કિમી</div>
+      </div>
+
+      <div class="form-group normal-field" style="grid-column: span 2;">
+        <label>કરેલ કામગીરીની વિગત:</label>
+        <input type="text" id="mWork" list="lstWork" placeholder="કામગીરી લખો અથવા સિલેક્ટ કરો">
+        <datalist id="lstWork">
+          <option value="જીયોટેક ની કામગીરી">
+          <option value="૫ આવાસ ના જેઓ ટેક">
+          <option value="૩ આવાસ અને ૨ ઘાસ ચાર ના">
+          <option value="૩ આવાસ ની મુલાકાત">
+          <option value="૨ વનીકરણ અને ૧ આવાસ ના જીઓં ટેક">
+          <option value="વનીકરણ અને ૨ અવસ ના જીઓં ટેક">
+          <option value="૩ અવસ ના જીઓ ટેક">
+          <option value="૨ અમૃત વાટિકા અને ૩ અવસ ના જીઓં ટેક">
+          <option value="૨ આવાસ ના જીઓં ટેક">
+          <option value="૨ આવાસ અને ૨ ઘાસ ચારા ના જીઓં ટેક">
+          <option value="૪ આવાસ ના જીઓં ટેક">
+          <option value="૨ ઘાસ ચાર ના અને ૧ આવાસ નું જીઓં ટેક">
+          <option value="પંડિત દીનદયાળ આવાસ ની મુલાકાત">
+          <option value="સામુહિક તળાવ ની મુલાકાત">
+          <option value="KYC ની કામગીરી">
+          <option value="ઓફીસ ની કામગીરી">
+        </datalist>
+      </div>
+    </div>
+
+    <div class="actions-bar" style="margin-top: 14px;">
+      <button class="btn btn-blue" onclick="saveModal()">💾 સેવ કરો</button>
+      <button class="btn btn-slate" onclick="closeModal()">રદ કરો</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const FIREBASE_BASE_URL = "https://atbill-c7966-default-rtdb.asia-southeast1.firebasedatabase.app";
+  const GUJ_MONTHS = ["જાન્યુઆરી", "ફેબ્રુઆરી", "માર્ચ", "એપ્રિલ", "મે", "જૂન", "જુલાઈ", "ઓગસ્ટ", "સપ્ટેમ્બર", "ઓક્ટોબર", "નવેમ્બર", "ડિસેમ્બર"];
+  const GUJ_DAYS = ["રવિવાર", "સોમવાર", "મંગળવાર", "બુધવાર", "ગુરુવાર", "શુક્રવાર", "શનિવાર"];
+
+  const VILLAGES_LIST = [
+    { name: "વીંછિયા", km: 0 },
+    { name: "અજમેર", km: 36 },
+    { name: "અમરાપુર", km: 9 },
+    { name: "અંકડીયા", km: 40 },
+    { name: "અસલપર", km: 32 },
+    { name: "બંધાળી", km: 36 },
+    { name: "બેલડા", km: 52 },
+    { name: "ભાડલી", km: 50 },
+    { name: "ભોયરા", km: 16 },
+    { name: "છાસિયા", km: 28 },
+    { name: "દાદલી", km: 14 },
+    { name: "દેવધરી", km: 48 },
+    { name: "ઢેઢુકી", km: 40 },
+    { name: "ફુલઝર", km: 26 },
+    { name: "ગઢાળા", km: 60 },
+    { name: "ગોરૈયા", km: 28 },
+    { name: "ગુંદાળા - જસ", km: 20 },
+    { name: "હાથસણી", km: 20 },
+    { name: "હિંગોળગઢ", km: 20 },
+    { name: "જનાડા", km: 24 },
+    { name: "કાંધેવાળીયા", km: 18 },
+    { name: "કણસાલોલીયા", km: 8 },
+    { name: "ખડકાણા", km: 26 },
+    { name: "ખરાચીયા જસ", km: 20 },
+    { name: "કોટડા", km: 6 },
+    { name: "લાલાવદર", km: 22 },
+    { name: "મોઢુકા", km: 32 },
+    { name: "મોટા હડમતિયા", km: 22 },
+    { name: "મોટા માત્રા", km: 22 },
+    { name: "મોટી લાખાવડ", km: 26 },
+    { name: "નાના માત્રા", km: 34 },
+    { name: "ઓરી", km: 14 },
+    { name: "પટીયાળી", km: 34 },
+    { name: "પીપરડી", km: 26 },
+    { name: "રેવાણીયા", km: 6 },
+    { name: "રૂપાવટી", km: 20 },
+    { name: "સમાઢીયાળા", km: 24 },
+    { name: "સનાળા", km: 48 },
+    { name: "સનાળી", km: 34 },
+    { name: "સરતાનપર", km: 48 },
+    { name: "સોમલપર", km: 46 },
+    { name: "સોમ પીપળીયા", km: 36 },
+    { name: "થોરીયાળી", km: 16 },
+    { name: "વનાળા", km: 42 },
+    { name: "વાંગધ્રા", km: 22 },
+    { name: "વેરાવળ ભડલી", km: 26 }
+  ];
+
+  let currentMonthRows = [];
+  let curEditIdx = -1;
+  let activeEditorType = 'tour';
+
+  /* ===================================================================== */
+  /* PRINT SETUP MODAL HANDLERS & DYNAMIC CSS GENERATOR                    */
+  /* ===================================================================== */
+  function openPrintSetupModal() {
+    document.getElementById('printSetupModal').style.display = 'flex';
+  }
+
+  function closePrintSetupModal() {
+    document.getElementById('printSetupModal').style.display = 'none';
+  }
+
+  function executePrintFromModal() {
+    closePrintSetupModal();
+    setTimeout(() => {
+      window.print();
+    }, 200);
+  }
+
+  function applyPageSettings() {
+    const colorMode = document.getElementById('cfgColorMode').value;
+    const fontWeight = document.getElementById('cfgFontWeight').value;
+    const borderWidth = document.getElementById('cfgBorderWidth').value;
+    const scale = document.getElementById('cfgScale').value;
+    const rowHeight = document.getElementById('cfgRowHeight').value;
+    const marginTop = document.getElementById('cfgMarginTop').value;
+    const marginBottom = document.getElementById('cfgMarginBottom').value;
+    const marginLR = document.getElementById('cfgMarginLR').value;
+    const fontSize = document.getElementById('cfgFontSize').value;
+
+    // Badges Update
+    document.getElementById('lblScale').innerText = scale + "%";
+    document.getElementById('lblRowHeight').innerText = rowHeight + " mm";
+    document.getElementById('lblMarginTop').innerText = marginTop + " mm";
+    document.getElementById('lblMarginBottom').innerText = marginBottom + " mm";
+    document.getElementById('lblMarginLR').innerText = marginLR + " mm";
+    document.getElementById('lblFontSize').innerText = fontSize + " px";
+
+    const root = document.documentElement;
+    root.style.setProperty('--cfg-row-height', rowHeight + 'mm');
+    root.style.setProperty('--cfg-font-size', fontSize + 'px');
+    root.style.setProperty('--cfg-font-weight', fontWeight);
+    root.style.setProperty('--cfg-border-width', borderWidth);
+
+    const docContainer = document.getElementById('docMainContainer');
+    if (colorMode === 'bw') {
+      docContainer.classList.add('mode-pure-bw');
+    } else {
+      docContainer.classList.remove('mode-pure-bw');
+    }
+
+    const isPureBw = (colorMode === 'bw');
+    const dynamicCss = `
+      @page {
+        size: A4 portrait;
+        margin: ${marginTop}mm ${marginLR}mm ${marginBottom}mm ${marginLR}mm !important;
+      }
+      @media print {
+        body {
+          zoom: ${scale}%;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        .doc-container {
+          border-width: ${borderWidth} !important;
+        }
+        .doc-header {
+          border-bottom-width: ${borderWidth} !important;
+          padding-top: 1.5mm !important;
+          padding-bottom: 2mm !important;
+        }
+        .doc-meta, .doc-title, table.ta-table {
+          font-weight: ${fontWeight} !important;
+        }
+        table.ta-table th, table.ta-table td {
+          border-width: ${borderWidth} !important;
+          height: ${rowHeight}mm !important;
+          font-size: ${fontSize}px !important;
+          font-weight: ${fontWeight} !important;
+          ${isPureBw ? 'background-color: #ffffff !important; color: #000000 !important;' : ''}
+        }
+        table.ta-table th {
+          font-size: ${parseFloat(fontSize) + 0.3}px !important;
+          height: ${parseFloat(rowHeight) + 0.6}mm !important;
+          font-weight: 800 !important;
+        }
+        .sig-cell {
+          height: 25mm !important;
+          font-size: ${fontSize}px !important;
+          font-weight: ${fontWeight} !important;
+          ${isPureBw ? 'background-color: #ffffff !important; color: #000000 !important;' : ''}
+        }
+        ${isPureBw ? `
+          .merged-holiday-cell, .merged-office-cell, tr.row-tour, tr.row-office, tr.row-holiday {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+          }
+        ` : ''}
+      }
+    `;
+
+    document.getElementById('customPrintCss').innerHTML = dynamicCss;
+
+    const setupState = {
+      colorMode, fontWeight, borderWidth, scale, rowHeight, marginTop, marginBottom, marginLR, fontSize
+    };
+    localStorage.setItem('ta_page_setup_pref_v3', JSON.stringify(setupState));
+  }
+
+  function setPresetPerfectFit() {
+    document.getElementById('cfgColorMode').value = 'bw';
+    document.getElementById('cfgFontWeight').value = '700';
+    document.getElementById('cfgBorderWidth').value = '1.5px';
+    document.getElementById('cfgScale').value = '100';
+    document.getElementById('cfgRowHeight').value = '6.8';
+    document.getElementById('cfgMarginTop').value = '8';
+    document.getElementById('cfgMarginBottom').value = '8';
+    document.getElementById('cfgMarginLR').value = '6';
+    document.getElementById('cfgFontSize').value = '10';
+    applyPageSettings();
+  }
+
+  function resetPageSetup() {
+    setPresetPerfectFit();
+  }
+
+  function loadSavedPageSetup() {
+    const saved = localStorage.getItem('ta_page_setup_pref_v3');
+    if (saved) {
+      try {
+        const s = JSON.parse(saved);
+        if (s.colorMode) document.getElementById('cfgColorMode').value = s.colorMode;
+        if (s.fontWeight) document.getElementById('cfgFontWeight').value = s.fontWeight;
+        if (s.borderWidth) document.getElementById('cfgBorderWidth').value = s.borderWidth;
+        if (s.scale) document.getElementById('cfgScale').value = s.scale;
+        if (s.rowHeight) document.getElementById('cfgRowHeight').value = s.rowHeight;
+        if (s.marginTop !== undefined) document.getElementById('cfgMarginTop').value = s.marginTop;
+        if (s.marginBottom !== undefined) document.getElementById('cfgMarginBottom').value = s.marginBottom;
+        if (s.marginLR !== undefined) document.getElementById('cfgMarginLR').value = s.marginLR;
+        if (s.fontSize) document.getElementById('cfgFontSize').value = s.fontSize;
+      } catch (e) {}
+    }
+    applyPageSettings();
+  }
+
+  /* ===================================================================== */
+  /* VILLAGE DROPDOWNS & TA BILL LOGIC                                     */
+  /* ===================================================================== */
+  function initVillageDropdowns() {
+    const sel1 = document.getElementById('mVillage1');
+    const sel2 = document.getElementById('mVillage2');
+
+    sel1.innerHTML = '<option value="">-- ગામ ૧ પસંદ કરો --</option>';
+    sel2.innerHTML = '<option value="">-- કોઈ નહીં (માત્ર ૧ ગામ) --</option>';
+
+    VILLAGES_LIST.forEach((v) => {
+      const opt1 = document.createElement('option');
+      opt1.value = v.name;
+      opt1.innerText = `${v.name} (~${v.km} કિમી)`;
+      opt1.dataset.km = v.km;
+      sel1.appendChild(opt1);
+
+      const opt2 = document.createElement('option');
+      opt2.value = v.name;
+      opt2.innerText = `${v.name} (~${v.km} કિમી)`;
+      opt2.dataset.km = v.km;
+      sel2.appendChild(opt2);
+    });
+  }
+
+  function onVillageChange() {
+    const sel1 = document.getElementById('mVillage1');
+    const sel2 = document.getElementById('mVillage2');
+
+    const v1Name = sel1.value;
+    const v2Name = sel2.value;
+
+    let km1 = 0;
+    let km2 = 0;
+
+    const opt1 = sel1.options[sel1.selectedIndex];
+    if (opt1 && opt1.dataset.km) km1 = parseInt(opt1.dataset.km, 10);
+
+    const opt2 = sel2.options[sel2.selectedIndex];
+    if (opt2 && opt2.dataset.km) km2 = parseInt(opt2.dataset.km, 10);
+
+    const totalKm = km1 + km2;
+
+    if (v1Name && v2Name) {
+      document.getElementById('mTo').value = `${v1Name} / ${v2Name}`;
+      document.getElementById('kmInfoBadge').innerText = `${v1Name} (${km1} km) + ${v2Name} (${km2} km) = ${totalKm} કિમી`;
+    } else if (v1Name) {
+      document.getElementById('mTo').value = v1Name;
+      document.getElementById('kmInfoBadge').innerText = `${v1Name} = ${totalKm} કિમી`;
+    } else if (v2Name) {
+      document.getElementById('mTo').value = v2Name;
+      document.getElementById('kmInfoBadge').innerText = `${v2Name} = ${totalKm} કિમી`;
+    } else {
+      document.getElementById('kmInfoBadge').innerText = `કુલ: 0 કિમી`;
+    }
+
+    if (totalKm > 0 || (v1Name && km1 === 0)) {
+      document.getElementById('mKm').value = totalKm;
+    }
+  }
+
+  function setSyncBadge(status, message) {
+    const badge = document.getElementById('syncStatus');
+    const icon = document.getElementById('syncIcon');
+    const text = document.getElementById('syncText');
+
+    badge.className = 'sync-badge ' + status;
+    if (status === 'synced') {
+      icon.innerText = '✅';
+      text.innerText = message || 'Cloud Synced (Firebase)';
+    } else if (status === 'saving') {
+      icon.innerText = '⏳';
+      text.innerText = message || 'Firebase માં સેવ થાય છે...';
+    } else if (status === 'error') {
+      icon.innerText = '⚠️';
+      text.innerText = message || 'Offline / સ્થાનિક સેવ';
+    }
+  }
+
+  function getStorageKey(year, month) {
+    return `ta_bill_firebase_v6_${year}_${month}`;
+  }
+
+  function formatDisplayTime(timeStr) {
+    if (!timeStr || timeStr === '-') return '-';
+    timeStr = timeStr.trim();
+    if (timeStr.includes(':')) {
+      const parts = timeStr.split(':');
+      let h = parseInt(parts[0], 10);
+      const m = parts[1];
+      if (h > 12) h = h - 12;
+      return `${String(h).padStart(2, '0')}:${m}`;
+    }
+    return timeStr;
+  }
+
+  function to24Hour(timeStr, isReturn = false) {
+    if (!timeStr || timeStr === '-') return isReturn ? "17:30" : "10:30";
+    if (timeStr.includes(':')) {
+      const parts = timeStr.split(':');
+      let h = parseInt(parts[0], 10);
+      const m = parts[1];
+      if (isReturn && h >= 1 && h <= 11) {
+        h = h + 12;
+      }
+      return `${String(h).padStart(2, '0')}:${m}`;
+    }
+    return isReturn ? "17:30" : "10:30";
+  }
+
+  function setTimeVal(inputId, val) {
+    document.getElementById(inputId).value = val;
+  }
+
+  function updateHeaders() {
+    const name = document.getElementById('inpName').value;
+    const desig = document.getElementById('inpDesig').value;
+    const year = document.getElementById('inpYear').value;
+    const month = parseInt(document.getElementById('selMonth').value);
+
+    document.getElementById('txtHdrName').innerText = `નામ :- ${name}`;
+    document.getElementById('txtHdrDesig').innerText = `હોદો :- ${desig}`;
+    document.getElementById('txtHdrMonth').innerText = `માહે - ${GUJ_MONTHS[month]} ${year} ની કરેલ કામગીરી`;
+
+    localStorage.setItem('ta_profile_name', name);
+    localStorage.setItem('ta_profile_desig', desig);
+    localStorage.setItem('ta_profile_base', document.getElementById('inpBaseOffice').value);
+  }
+
+  async function updateProfileOnline() {
+    updateHeaders();
+    const profile = {
+      name: document.getElementById('inpName').value,
+      desig: document.getElementById('inpDesig').value,
+      baseOffice: document.getElementById('inpBaseOffice').value
+    };
+    try {
+      await fetch(`${FIREBASE_BASE_URL}/profile.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profile)
+      });
+    } catch (e) {
+      console.warn("Could not sync profile online:", e);
+    }
+  }
+
+  async function loadProfileOnline() {
+    try {
+      const res = await fetch(`${FIREBASE_BASE_URL}/profile.json`);
+      const data = await res.json();
+      if (data) {
+        if (data.name) document.getElementById('inpName').value = data.name;
+        if (data.desig) document.getElementById('inpDesig').value = data.desig;
+        if (data.baseOffice) document.getElementById('inpBaseOffice').value = data.baseOffice;
+      }
+    } catch (e) {
+      const savedName = localStorage.getItem('ta_profile_name');
+      const savedDesig = localStorage.getItem('ta_profile_desig');
+      const savedBase = localStorage.getItem('ta_profile_base');
+      if (savedName) document.getElementById('inpName').value = savedName;
+      if (savedDesig) document.getElementById('inpDesig').value = savedDesig;
+      if (savedBase) document.getElementById('inpBaseOffice').value = savedBase;
+    }
+    updateHeaders();
+  }
+
+  function changeMonthOrYear() {
+    const year = parseInt(document.getElementById('inpYear').value) || 2026;
+    const month = parseInt(document.getElementById('selMonth').value);
+    updateHeaders();
+    loadMonthData(year, month);
+  }
+
+  async function loadMonthData(year, month) {
+    setSyncBadge('saving', 'Firebase માંથી લોડ થાય છે...');
+    const localKey = getStorageKey(year, month);
+    const localSaved = localStorage.getItem(localKey);
+
+    if (localSaved) {
+      try {
+        currentMonthRows = JSON.parse(localSaved);
+        renderTable();
+      } catch (e) {}
+    }
+
+    try {
+      const res = await fetch(`${FIREBASE_BASE_URL}/ta_bills/${year}_${month}.json`);
+      const cloudData = await res.json();
+
+      if (cloudData && Array.isArray(cloudData) && cloudData.length > 0) {
+        currentMonthRows = cloudData;
+        localStorage.setItem(localKey, JSON.stringify(cloudData));
+        renderTable();
+        setSyncBadge('synced', 'Firebase Cloud Synced ✅');
+        return;
+      }
+    } catch (err) {
+      console.warn("Firebase fetch error:", err);
+      if (localSaved) {
+        setSyncBadge('error', 'ઓફલાઇન મોડ (સ્થાનિક ડેટા)');
+        return;
+      }
+    }
+
+    if (!localSaved) {
+      generateFreshCalendar(year, month);
+    }
+  }
+
+  function generateFreshCalendar(year, month) {
+    const baseOffice = document.getElementById('inpBaseOffice').value || "વીંછીયા\\ તાલુકા પંચાયત";
+    const totalDays = new Date(year, month + 1, 0).getDate();
+    currentMonthRows = [];
+
+    let satCount = 0;
+
+    for (let d = 1; d <= totalDays; d++) {
+      const dt = new Date(year, month, d);
+      const dayOfWeek = dt.getDay();
+      const dayName = GUJ_DAYS[dayOfWeek];
+      const dateFormatted = `${String(d).padStart(2, '0')}/${String(month + 1).padStart(2, '0')}/${year}`;
+
+      let row = {
+        date: dateFormatted,
+        day: dayName,
+        from: baseOffice,
+        time1: "10:30",
+        to: "-",
+        time2: "-",
+        veh: "પ્રા.વા",
+        km: "",
+        fraction: "-",
+        work: "ઓફીસ ની કામગીરી",
+        type: "office",
+        holidayName: "",
+        v1: "",
+        v2: ""
+      };
+
+      if (dayOfWeek === 0) {
+        row.type = "holiday";
+        row.holidayName = "રવિવાર ની રજા";
+      } else if (dayOfWeek === 6) {
+        satCount++;
+        if (satCount === 2) {
+          row.type = "holiday";
+          row.holidayName = "બીજો શનિવાર";
+        } else if (satCount === 4) {
+          row.type = "holiday";
+          row.holidayName = "ચોથો શનિવાર";
+        }
+      }
+
+      currentMonthRows.push(row);
+    }
+
+    renderTable();
+    persistData();
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('tbodyRows');
+    tbody.innerHTML = "";
+
+    let totalDays = currentMonthRows.length;
+    let holidays = 0;
+    let officeDays = 0;
+    let tourDays = 0;
+    let totalKm = 0;
+
+    currentMonthRows.forEach((r, idx) => {
+      const tr = document.createElement('tr');
+      tr.className = `data-row row-${r.type}`;
+      tr.onclick = () => openEditModal(idx);
+
+      if (r.type === 'holiday') {
+        holidays++;
+        tr.innerHTML = `
+          <td>${r.date}</td>
+          <td>${r.day}</td>
+          <td colspan="8" class="merged-holiday-cell">${r.holidayName || 'રવિવાર ની રજા'}</td>
+        `;
+      } else if (r.type === 'office') {
+        officeDays++;
+        tr.innerHTML = `
+          <td>${r.date}</td>
+          <td>${r.day}</td>
+          <td>${r.from || 'વીંછીયા\\ તાલુકા પંચાયત'}</td>
+          <td>${formatDisplayTime(r.time1) || '10:30'}</td>
+          <td colspan="5" class="merged-office-cell">-</td>
+          <td class="c-work">${r.work || 'ઓફીસ ની કામગીરી'}</td>
+        `;
+      } else {
+        tourDays++;
+        totalKm += (parseFloat(r.km) || 0);
+        tr.innerHTML = `
+          <td>${r.date}</td>
+          <td>${r.day}</td>
+          <td>${r.from || 'વીંછીયા\\ તાલુકા પંચાયત'}</td>
+          <td>${formatDisplayTime(r.time1) || '10:30'}</td>
+          <td>${r.to || '-'}</td>
+          <td>${formatDisplayTime(r.time2) || '05:30'}</td>
+          <td>${r.veh || 'પ્રા.વા'}</td>
+          <td>${r.km || '-'}</td>
+          <td>1/2</td>
+          <td class="c-work">${r.work || '-'}</td>
+        `;
+      }
+
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('kpiTotalDays').innerText = totalDays;
+    document.getElementById('kpiHolidayDays').innerText = holidays;
+    document.getElementById('kpiOfficeDays').innerText = officeDays;
+    document.getElementById('kpiTourDays').innerText = tourDays;
+    document.getElementById('kpiTotalKm').innerText = totalKm;
+
+    document.getElementById('ftDaysTotal').innerText = totalDays;
+    document.getElementById('ftDaysHoliday').innerText = holidays;
+    document.getElementById('ftDaysOffice').innerText = officeDays;
+    document.getElementById('ftDaysTour').innerText = tourDays;
+  }
+
+  function setEditorMode(mode) {
+    activeEditorType = mode;
+
+    document.getElementById('btnModeOffice').classList.toggle('active', mode === 'office');
+    document.getElementById('btnModeTour').classList.toggle('active', mode === 'tour');
+    document.getElementById('btnModeHoliday').classList.toggle('active', mode === 'holiday');
+
+    const isHoliday = (mode === 'holiday');
+    const isTour = (mode === 'tour');
+
+    document.getElementById('holidayBox').style.display = isHoliday ? 'flex' : 'none';
+    document.querySelectorAll('.normal-field').forEach(el => {
+      el.style.display = isHoliday ? 'none' : 'flex';
+    });
+    document.querySelectorAll('.tour-only').forEach(el => {
+      el.style.display = isTour ? 'flex' : 'none';
+    });
+
+    if (mode === 'office') {
+      document.getElementById('mTime1').value = "10:30";
+      document.getElementById('mWork').value = "ઓફીસ ની કામગીરી";
+    } else if (mode === 'holiday') {
+      document.getElementById('mHolidayName').value = "રવિવાર ની રજા";
+    } else if (mode === 'tour') {
+      document.getElementById('mTime1').value = "10:30";
+      document.getElementById('mTime2').value = "17:30";
+      if (!document.getElementById('mWork').value || document.getElementById('mWork').value === 'ઓફીસ ની કામગીરી') {
+        document.getElementById('mWork').value = "જીયોટેક ની કામગીરી";
+      }
+    }
+  }
+
+  function openEditModal(idx) {
+    curEditIdx = idx;
+    const r = currentMonthRows[idx];
+
+    document.getElementById('modalTitle').innerText = `તારીખ: ${r.date} (${r.day})`;
+    document.getElementById('mHolidayName').value = r.holidayName || "રવિવાર ની રજા";
+    
+    document.getElementById('mTime1').value = to24Hour(r.time1, false);
+    document.getElementById('mTime2').value = to24Hour(r.time2, true);
+
+    document.getElementById('mTo').value = (r.to && r.to !== '-') ? r.to : "";
+    document.getElementById('mVillage1').value = r.v1 || "";
+    document.getElementById('mVillage2').value = r.v2 || "";
+
+    document.getElementById('mKm').value = r.km || "";
+    document.getElementById('mWork').value = (r.work && r.work !== '-') ? r.work : "જીયોટેક ની કામગીરી";
+
+    setEditorMode(r.type || 'tour');
+    onVillageChange();
+    document.getElementById('editModal').style.display = "flex";
+  }
+
+  function closeModal() {
+    document.getElementById('editModal').style.display = "none";
+  }
+
+  function saveModal() {
+    if (curEditIdx < 0) return;
+    const type = activeEditorType;
+    const baseOffice = document.getElementById('inpBaseOffice').value || "વીંછીયા\\ તાલુકા પંચાયત";
+
+    currentMonthRows[curEditIdx] = {
+      ...currentMonthRows[curEditIdx],
+      type: type,
+      holidayName: type === 'holiday' ? document.getElementById('mHolidayName').value : "",
+      from: type === 'holiday' ? "-" : baseOffice,
+      time1: type === 'holiday' ? "-" : document.getElementById('mTime1').value,
+      to: type === 'tour' ? (document.getElementById('mTo').value || "-") : "-",
+      v1: type === 'tour' ? document.getElementById('mVillage1').value : "",
+      v2: type === 'tour' ? document.getElementById('mVillage2').value : "",
+      time2: type === 'tour' ? document.getElementById('mTime2').value : "-",
+      veh: type === 'tour' ? "પ્રા.વા" : "-",
+      km: type === 'tour' ? document.getElementById('mKm').value : "",
+      fraction: type === 'tour' ? "1/2" : "-",
+      work: type === 'holiday' ? "-" : (document.getElementById('mWork').value || "ઓફીસ ની કામગીરી")
+    };
+
+    closeModal();
+    renderTable();
+    persistData();
+  }
+
+  async function persistData() {
+    const year = parseInt(document.getElementById('inpYear').value) || 2026;
+    const month = parseInt(document.getElementById('selMonth').value);
+    
+    const key = getStorageKey(year, month);
+    localStorage.setItem(key, JSON.stringify(currentMonthRows));
+
+    setSyncBadge('saving', 'Firebase માં સિંક થાય છે...');
+    try {
+      const res = await fetch(`${FIREBASE_BASE_URL}/ta_bills/${year}_${month}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(currentMonthRows)
+      });
+      if (res.ok) {
+        setSyncBadge('synced', 'Firebase Cloud Synced ✅');
+      } else {
+        setSyncBadge('error', 'સિંક એરર (સ્થાનિક સેવ)');
+      }
+    } catch (e) {
+      console.warn("Could not save to Firebase:", e);
+      setSyncBadge('error', 'ઓફલાઇન (સ્થાનિક સેવ)');
+    }
+  }
+
+  function syncNow() {
+    const year = parseInt(document.getElementById('inpYear').value) || 2026;
+    const month = parseInt(document.getElementById('selMonth').value);
+    loadMonthData(year, month);
+  }
+
+  async function clearCurrentMonth() {
+    if (confirm("શું તમે ખરેખર આ મહિનાનો ડેટા Firebase અને બ્રાઉઝરમાંથી રીસેટ કરવા માંગો છો?")) {
+      const year = parseInt(document.getElementById('inpYear').value) || 2026;
+      const month = parseInt(document.getElementById('selMonth').value);
+      localStorage.removeItem(getStorageKey(year, month));
+      
+      try {
+        await fetch(`${FIREBASE_BASE_URL}/ta_bills/${year}_${month}.json`, {
+          method: 'DELETE'
+        });
+      } catch (e) {}
+
+      generateFreshCalendar(year, month);
+    }
+  }
+
+  function downloadCSV() {
+    const year = document.getElementById('inpYear').value;
+    const month = parseInt(document.getElementById('selMonth').value);
+
+    let csv = "\uFEFF";
+    csv += `"${document.getElementById('txtHdrName').innerText}","${document.getElementById('txtHdrDesig').innerText}","${document.getElementById('txtHdrMonth').innerText}"\n`;
+    csv += `"પ્રવાસની વિગત"\n`;
+    csv += `"તારીખ","વાર","ક્યાથી","સમય","ક્યાં સુધી","સમય","વાહન","કી.મી.","દિવસ","કરેલ કામગીરીની વિગત"\n`;
+
+    currentMonthRows.forEach(r => {
+      if (r.type === 'holiday') {
+        csv += `"${r.date}","${r.day}","${r.holidayName}","","","","","","",""\n`;
+      } else if (r.type === 'office') {
+        csv += `"${r.date}","${r.day}","${r.from}","${formatDisplayTime(r.time1)}","-","-","-","-","-","${r.work}"\n`;
+      } else {
+        csv += `"${r.date}","${r.day}","${r.from}","${formatDisplayTime(r.time1)}","${r.to}","${formatDisplayTime(r.time2)}","${r.veh}","${r.km}","1/2","${r.work}"\n`;
+      }
+    });
+
+    csv += `"માસના દિવસો","${document.getElementById('ftDaysTotal').innerText}","","સિવિલ ઈજનેર તા.પં. વિંછીયા","","આસિસ્ટંટ પ્રોગ્રામર તા.પં. વિંછીયા","","તાલુકા વિકાસ અધિકારી તા.પં. વિંછીયા"\n`;
+    csv += `"રજાના દિવસો","${document.getElementById('ftDaysHoliday').innerText}"\n`;
+    csv += `"કચેરીના દિવસો","${document.getElementById('ftDaysOffice').innerText}"\n`;
+    csv += `"પ્રવાસના દિવસો","${document.getElementById('ftDaysTour').innerText}"\n`;
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `TA_Bill_${year}_${month + 1}.csv`;
+    a.click();
+  }
+
+  window.onload = async function() {
+    initVillageDropdowns();
+
+    const now = new Date();
+    document.getElementById('selMonth').value = now.getMonth().toString();
+    document.getElementById('inpYear').value = now.getFullYear().toString();
+
+    loadSavedPageSetup();
+    await loadProfileOnline();
+    changeMonthOrYear();
+  };
+</script>
+</body>
+</html>
